@@ -1,11 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
 func ExecCallBack(cb func(int, int) int, arg int) {
 	cb(arg, arg)
+}
+
+type Person struct {
+	name string
+}
+
+func (p Person) Greeting(name string) string {
+	return fmt.Sprintf("Hello %s from %s", name, p.name)
 }
 
 func TestXxx(t *testing.T) {
@@ -51,6 +60,29 @@ func TestXxx(t *testing.T) {
 	if !results.Equals(4, "yo") {
 		t.Errorf("wrong results in mock, expected=%v, got=%v\n",
 			"4", results,
+		)
+	}
+
+}
+
+func TestMockReceiverFunc(t *testing.T) {
+	p := Person{name: "Dave"}
+	mockGreeting := p.Greeting
+	mock := MakeMock(&mockGreeting)
+	mockGreeting("Bob")
+	if !mock.Called() {
+		t.Errorf("expected at least one call")
+	}
+	args := mock.CallArgs(0)
+	if !args.Equals("Bob") {
+		t.Errorf("wrong args in mock, expected=%v, got=%v\n",
+			"Bob", args,
+		)
+	}
+	returns := mock.CallResults(0)
+	if !returns.Equals("Hello Bob from Dave") {
+		t.Errorf("wrong results in mock, expected=%v, got=%v\n",
+			"Hello Bob from Dave", returns,
 		)
 	}
 }
