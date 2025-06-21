@@ -85,6 +85,46 @@ func TestMockReceiverFunc(t *testing.T) {
 			"Hello Bob from Dave", returns,
 		)
 	}
+
+}
+
+func TestMockGlobalReceiverFunc(t *testing.T) {
+
+	tests := []struct {
+		p      Person
+		args   string
+		result string
+	}{
+		{
+			Person{"Dave"},
+			"Bob",
+			"Hello Bob from Dave",
+		},
+		{
+			Person{"Bob"},
+			"Dave",
+			"Hello Dave from Bob",
+		},
+	}
+
+	f := Person.Greeting
+	mock := MakeMock(&f)
+
+	for i, tt := range tests {
+		f(tt.p, tt.args)
+		args := mock.CallArgs(i)
+		if !args.Equals(tt.p, tt.args) {
+			t.Errorf("wrong args in mock, expected=%v, got=%v\n",
+				tt.args, args,
+			)
+		}
+		results := mock.CallResults(i)
+		if !results.Equals(tt.result) {
+			t.Errorf("wrong args in mock, expected=%v, got=%v\n",
+				tt.result, results,
+			)
+		}
+	}
 }
 
 func F(i int) string {
