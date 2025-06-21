@@ -17,7 +17,7 @@ func (p Person) Greeting(name string) string {
 	return fmt.Sprintf("Hello %s from %s", name, p.name)
 }
 
-func TestXxx(t *testing.T) {
+func TestFuncVar(t *testing.T) {
 	mul := func(a, b int) int {
 		return a * b
 	}
@@ -83,6 +83,28 @@ func TestMockReceiverFunc(t *testing.T) {
 	if !returns.Equals("Hello Bob from Dave") {
 		t.Errorf("wrong results in mock, expected=%v, got=%v\n",
 			"Hello Bob from Dave", returns,
+		)
+	}
+}
+
+func F(i int) string {
+	return fmt.Sprintf("F with %d", i)
+}
+
+func TestMockFunc(t *testing.T) {
+	mockedF := F
+	mock := MakeMock(&mockedF)
+	mockedF(3)
+	args := mock.CallArgs(0)
+	if !args.Equals(3) {
+		t.Errorf("wrong args in mock, expected=%v, got=%v\n",
+			3, args,
+		)
+	}
+	returns := mock.CallResults(0)
+	if !returns.Equals("F with 3") {
+		t.Errorf("wrong results in mock, expected=%v, got=%v\n",
+			"F with 3", returns,
 		)
 	}
 }
