@@ -1,25 +1,47 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 )
 
 type Mock struct {
-	calls      int
+	numCalls   int
 	calledWith [][]reflect.Value
+	calls      []functionCall
 }
 
-type argVec []reflect.Value
+type valueSlice []reflect.Value
 
-func (av argVec) Equals(other ...any) bool {
-	if len(av) != len(other) {
+func (vs valueSlice) String() string {
+	var sb strings.Builder
+	sb.Grow(len(vs))
+	sb.WriteString("[")
+	for i, v := range vs {
+		sb.WriteString(fmt.Sprintf("%+v", v))
+		if i != len(vs)-1 {
+			sb.WriteString(" ")
+		}
+	}
+	sb.WriteString("]")
+	return strings.TrimSpace(sb.String())
+}
+
+type functionCall struct {
+	args    valueSlice
+	results valueSlice
+}
+
+func (vs valueSlice) Equals(other ...any) bool {
+	if len(vs) != len(other) {
 		return false
 	}
-	if len(av) == 0 {
+	if len(vs) == 0 {
 		return true
 	}
 	equals := true
-	for i, v := range av {
+	for i, v := range vs {
 		o := other[i]
 		equals = equals && reflect.DeepEqual(v.Interface(), o)
 		if !equals {
@@ -29,16 +51,20 @@ func (av argVec) Equals(other ...any) bool {
 	return equals
 }
 
-func (m Mock) CallArgs(i int) argVec {
-	return argVec(m.calledWith[i])
+func (m Mock) CallArgs(i int) valueSlice {
+	return valueSlice(m.calls[i].args)
 }
 
-func (m Mock) Calls() int {
+func (m Mock) CallResults(i int) valueSlice {
+	return valueSlice(m.calls[i].results)
+}
+
+func (m Mock) Calls() []functionCall {
 	return m.calls
 }
 
 func (m Mock) Called() bool {
-	return m.calls > 0
+	return len(m.calls) > 0
 }
 
 func MakeMock(fptr any) *Mock {
@@ -55,7 +81,8 @@ func MakeMock(fptr any) *Mock {
 		res := copy.Call(in)
 		// Track call data
 		m.calledWith = append(m.calledWith, in)
-		m.calls++
+		m.calls = append(m.calls, functionCall{in, res})
+		m.numCalls++
 		return res
 	}
 
