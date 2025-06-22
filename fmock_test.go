@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -146,5 +148,33 @@ func TestMockFunc(t *testing.T) {
 		t.Errorf("wrong results in mock, expected=%v, got=%v\n",
 			"F with 3", returns,
 		)
+	}
+}
+
+func TestMockAsParameter(t *testing.T) {
+	s := []int{0, 1, 2, 3}
+
+	delF := func(i int) bool {
+		return i > 1
+	}
+
+	mock := MakeMock(&delF)
+
+	slices.DeleteFunc(s, delF)
+
+	if !reflect.DeepEqual(s, []int{0, 1, 0, 0}) {
+		t.Errorf("mock created wrong result, expected=%v, got=%v", []int{0, 1, 0, 0}, s)
+	}
+
+	if !mock.Called() {
+		t.Errorf("expected mock to have been called")
+	}
+	if len(mock.Calls()) != len(s) {
+		t.Errorf("wrong number of mock calls, expected=%d, got=%d", len(s), len(mock.Calls()))
+	}
+	for i, c := range mock.Calls() {
+		if !c.Args.Equals(i) {
+			t.Errorf("wrong args in mock call, expected=%v, got=%v", []int{0}, c.Args)
+		}
 	}
 }

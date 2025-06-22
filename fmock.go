@@ -29,8 +29,8 @@ func (vs valueSlice) String() string {
 }
 
 type functionCall struct {
-	args    valueSlice
-	results valueSlice
+	Args    valueSlice
+	Results valueSlice
 }
 
 func (vs valueSlice) Equals(other ...any) bool {
@@ -52,11 +52,11 @@ func (vs valueSlice) Equals(other ...any) bool {
 }
 
 func (m Mock) CallArgs(i int) valueSlice {
-	return valueSlice(m.calls[i].args)
+	return valueSlice(m.calls[i].Args)
 }
 
 func (m Mock) CallResults(i int) valueSlice {
-	return valueSlice(m.calls[i].results)
+	return valueSlice(m.calls[i].Results)
 }
 
 func (m Mock) Calls() []functionCall {
